@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unilab. Orden de Estudios</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      .only-checked input[type="checkbox"]{ display:none; }
+      .only-checked .test-row{ display:none; }
+      .only-checked .test-row.checked{ display:flex; }
+      .card{ box-shadow:none !important; border:none !important; }
+      body{ background:white; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <div class="max-w-7xl mx-auto p-4 lg:p-8">
+    <!-- Header -->
+    <div class="flex items-start gap-4 mb-4">
+      <div class="flex-1">
+        <h1 class="text-2xl font-bold">Laboratorio Clínico Especializado. Unilab</h1>
+        <p class="text-sm">TORRE RIVERO. Primer piso. Av. Ayacucho con Teniente Arévalo. Cochabamba</p>
+        <p class="text-sm">Cel 627 23377. Tel 466 7840</p>
+      </div>
+      <div class="no-print flex items-center gap-2">
+        <button id="btnPrint" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Imprimir PDF</button>
+        <button id="btnClear" class="px-4 py-2 bg-slate-200 rounded-lg">Limpiar</button>
+      </div>
+    </div>
+
+    <!-- Datos del paciente -->
+    <div class="card bg-white rounded-xl shadow p-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <div class="md:col-span-2">
+          <label class="text-xs">Paciente</label>
+          <input id="paciente" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="text-xs">Edad</label>
+          <input id="edad" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="text-xs">Sexo</label>
+          <select id="sexo" class="w-full border rounded-lg px-3 py-2">
+            <option></option>
+            <option>F</option>
+            <option>M</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs">Fecha</label>
+          <input id="fecha" type="date" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div class="md:col-span-1">
+          <label class="text-xs">Teléfono</label>
+          <input id="telefono" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="text-xs">Diagnóstico</label>
+        <input id="diagnostico" class="w-full border rounded-lg px-3 py-2" />
+      </div>
+    </div>
+
+    <!-- Controles -->
+    <div class="no-print flex flex-wrap items-center gap-3 mb-4">
+      <input id="search" placeholder="Buscar prueba" class="border rounded-lg px-3 py-2 w-72" />
+      <span class="text-sm">Marcadas: <b id="count">0</b></span>
+      <label class="inline-flex items-center gap-2 text-sm"><input id="printOnlyChecked" type="checkbox" class="h-4 w-4"> Imprimir solo seleccionadas</label>
+    </div>
+
+    <!-- Secciones -->
+    <div id="sections" class="space-y-6"></div>
+
+    <p class="text-xs text-slate-500 mt-6">Al imprimir se genera un PDF desde el diálogo de impresión del navegador.</p>
+  </div>
+
+  <script>
+    // Datos de secciones y pruebas. Cada item puede tener children.
+    const DATA = [
+      {
+        title: "Paneles respiratorios",
+        items: [
+          "Panel 1. SARS-Cov-2. Influenza A. Influenza B",
+          "Panel 2. SARS-Cov-2. Influenza A. Influenza B. Virus sincitial respiratorio",
+          "SARS-Cov-2. Gen E. Gen N1. Gen N2",
+          "Panel 3. Rhinovirus. Adenovirus. Enterovirus",
+          "Panel 4. Detecta 10 patógenos respiratorios virales. SARS-Cov-2. Influenza A. Influenza B. Parainfluenza. Coronavirus humano. Bocavirus. Rhinovirus. Virus sincitial respiratorio. Adenovirus. Metapneumovirus",
+        ],
+      },
+      {
+        title: "Panel Mycobacterium",
+        items: [
+          "Panel 1. Mycobacterium Tuberculosis Complex. M. tuberculosis. M. bovis. M. africanum. M. canetti. M. microti. M. pinnipedii",
+          "Panel 2. Resistencia a rifampicina e isoniazida",
+        ],
+      },
+      {
+        title: "Panel gastrointestinal",
+        items: [
+          "Panel 1. Rotavirus A. Norovirus 1 y 2. Adenovirus",
+          "Panel 2. Detecta 9 patógenos gastrointestinales. Shigella spp. E. coli. Salmonella spp. Campylobacter spp. Adenovirus. Rotavirus A. Norovirus 1 y 2. Astrovirus",
+          "Panel 3. Detecta 24 patógenos gastrointestinales. Sapovirus. Adenovirus. Giardia lamblia. Entamoeba histolytica. Cryptosporidium spp. Clostridium difficile toxina B. Plesiomonas shigelloides. Vibrio vulnificus. Cyclospora cayetanensis. Astrovirus. Rotavirus. Norovirus. Salmonella spp. Campylobacter spp. Vibrio parahaemolyticus. Vibrio cholerae. E. coli enteroinvasiva. E. coli enteroagregativa. E. coli productora de toxina shiga. E. coli enteropatogénica. E. coli enterotoxigénica. Yersinia enterocolitica. Clostridium difficile toxina A. Clostridium difficile binario toxina A B",
+          "Diagnóstico y mecanismo de resistencia de Helicobacter pylori. Helicobacter pylori y resistencia a claritromicina",
+          "Detección de heterodímeros DQ2 y DQ8 para enfermedad celíaca",
+          "Detección de mutaciones de intolerancia a la lactosa",
+        ],
+      },
+      {
+        title: "Panel de enfermedades de transmisión sexual",
+        items: [
+          "Panel 1. Detecta 3 patógenos frecuentes. Chlamydia trachomatis. Neisseria gonorrhoeae. Mycoplasma genitalium",
+          "Panel 2. Detecta 13 patógenos frecuentes. Chlamydia trachomatis. Neisseria gonorrhoeae. Trichomonas vaginalis. Treponema pallidum. Mycoplasma genitalium. Herpes virus 1. Herpes virus 2. Mycoplasma hominis. Haemophilus ducreyi. Gardnerella vaginalis. Streptococcus agalactiae. Ureaplasma parvum o urealyticum. Mycoplasma hominis",
+          "Prostatitis bacteriana. Enterobacter spp. Klebsiella spp. Enterococcus faecalis. E. faecium. Escherichia coli. Proteus spp. Pseudomonas aeruginosa. Serratia spp. Staphylococcus aureus. Streptococcus spp",
+        ],
+      },
+      {
+        title: "Virus del papiloma humano",
+        items: [
+          "Papilomavirus. Captura híbrida",
+          "Panel 1. Detección de 20 genotipos. Alto riesgo 16. 18. 31. 33. 35. 39. 45. 51. 52. 56. 58. 59. 66. 68. Probable alto riesgo 53. 73. Bajo riesgo 6. 11. 69. 70",
+          "Panel 2. Detección de 21 genotipos. Alto riesgo 16. 18. Genotipos pool 6. 11. 26. 31. 33. 35. 39. 45. 51. 52. 53. 56. 58. 59. 66. 68. 73. 81. 82",
+        ],
+      },
+      {
+        title: "Infecciones virales cuantitativas",
+        items: [
+          "Hepatitis B HBV cuantitativa",
+          "Citomegalovirus CMV cuantitativa",
+          "Epstein Barr virus EBV cuantitativa",
+          "Herpes virus humano 6 HHV6 cuantitativa",
+        ],
+      },
+      {
+        title: "Meningitis",
+        items: [
+          "Panel. N. meningitidis. H. influenzae. S. pneumoniae",
+          "Panel meningitis encefalitis viral. Herpes virus simplex 1. Herpes virus simplex 2. Virus varicela zóster. Enterovirus. Parechovirus. West Nile. Toscana",
+          "Panel meningitis encefalitis bacteriano. Streptococcus pneumoniae. Listeria monocytogenes. Streptococcus agalactiae. Haemophilus influenzae. Neisseria meningitidis. Escherichia coli K1",
+        ],
+      },
+      {
+        title: "Estudios genéticos",
+        items: [
+          "ADN paternidad 2 muestras",
+          "ADN muestra adicional",
+          "ADN filiación 2 muestras. hermandad. abuelidad. tialdad",
+          "ADN cromosoma Y 2 muestras",
+          "Cariotipo con bandeo GTG",
+        ],
+      },
+      {
+        title: "Trisomías. paneles de diagnóstico molecular",
+        items: [
+          "Cromosoma 21",
+          "Síndrome de Down. Cromosoma 18",
+          "Síndrome de Edwards. Cromosoma 13",
+          "Síndrome de Patau. Síndrome de Turner",
+          "Síndrome de Klinefelter XXY",
+          "Monosomía X",
+          "Otras aneuploidías XXX y XYY",
+        ],
+      },
+      {
+        title: "PCR en tiempo real",
+        items: [
+          "Mutaciones en BRCA1 y BRCA2",
+          "Microdeleciones del sistema AZF del cromosoma Y",
+        ],
+      },
+      {
+        title: "Pruebas toxicológicas",
+        items: [
+          "Tamizaje 11 drogas. Anfetaminas. Barbitúricos. Antidepresivos tricíclicos. Benzodiacepinas. Cocaína. Marihuana. Metadona. MDMA. Fenciclidina. Opiáceos. Tramadol",
+        ],
+      },
+      {
+        title: "Coproflora funcional",
+        items: [
+          "Examen macroscópico",
+          "Examen microscópico",
+          "Coproparasitario seriado y concentrado",
+          "Giardia lamblia",
+          "Entamoeba histolytica",
+          "Cryptosporidium",
+          "Clostridium difficile toxina A y toxina B",
+          "Helicobacter pylori antígeno",
+          "Rotavirus",
+          "Adenovirus",
+        ],
+      },
+      {
+        title: "Examen integral de heces",
+        items: [
+          "pH fecal",
+          "Sangre oculta",
+          "Grasa Sudan III",
+          "Carbohidratos azúcares reductores",
+          "Elastasa 1 pancreática",
+        ],
+      },
+      {
+        title: "Marcadores de inflamación intestinal",
+        items: [
+          "Calprotectina fecal",
+          "Lactoferrina fecal",
+        ],
+      },
+      {
+        title: "Marcadores de permeabilidad e inmunidad",
+        items: [
+          "Alfa 1 antitripsina",
+          "IgA secretora",
+          "Zonulina",
+        ],
+      },
+      {
+        title: "Recuentos y cultivos",
+        items: [
+          "Coprocultivo con identificación de flora enteropatógena y antibiograma",
+          "Microbiota intestinal con cuantificación de flora aerobia y anaerobia",
+          "Recuento cuantitativo de cándida",
+        ],
+      },
+    ];
+
+    // Render
+    const sectionsEl = document.getElementById('sections');
+
+    function render(){
+      sectionsEl.innerHTML = '';
+      const q = document.getElementById('search').value.trim().toLowerCase();
+      DATA.forEach((sec, si) => {
+        const card = document.createElement('section');
+        card.className = 'card bg-white rounded-xl shadow border border-slate-200';
+        const header = document.createElement('div');
+        header.className = 'flex items-center justify-between p-4';
+        header.innerHTML = `
+          <h2 class="font-semibold">${sec.title}</h2>
+          <div class="no-print flex items-center gap-2">
+            <button class="text-sm px-2 py-1 bg-slate-100 rounded" data-action="check-all" data-si="${si}">Marcar todo</button>
+            <button class="text-sm px-2 py-1 bg-slate-100 rounded" data-action="uncheck-all" data-si="${si}">Desmarcar</button>
+          </div>`;
+        card.appendChild(header);
+        const list = document.createElement('div');
+        list.className = 'divide-y';
+        sec.items.forEach((label, ti) => {
+          if(q && !label.toLowerCase().includes(q)) return;
+          const row = document.createElement('label');
+          row.className = 'test-row flex items-start gap-3 p-3';
+          row.innerHTML = `
+            <input type="checkbox" class="mt-1 h-4 w-4" data-si="${si}" data-ti="${ti}" />
+            <span class="leading-snug">${label}</span>`;
+          list.appendChild(row);
+        });
+        card.appendChild(list);
+        sectionsEl.appendChild(card);
+      });
+      restoreState();
+      updateCount();
+      applyCheckedClasses();
+    }
+
+    // Estado persistente
+    function stateKey(){ return 'unilab_orden_v1'; }
+    function readState(){ try{ return JSON.parse(localStorage.getItem(stateKey()))||{} }catch{ return {} } }
+    function saveState(s){ localStorage.setItem(stateKey(), JSON.stringify(s)); }
+
+    function restoreState(){
+      const s = readState();
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const key = cb.dataset.si + ':' + cb.dataset.ti;
+        cb.checked = !!s[key];
+      });
+      ['paciente','edad','sexo','fecha','telefono','diagnostico'].forEach(id=>{
+        if(s[id]) document.getElementById(id).value = s[id];
+      });
+    }
+
+    function captureState(){
+      const s = readState();
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const key = cb.dataset.si + ':' + cb.dataset.ti;
+        s[key] = cb.checked;
+      });
+      ['paciente','edad','sexo','fecha','telefono','diagnostico'].forEach(id=>{
+        s[id] = document.getElementById(id).value;
+      });
+      saveState(s);
+    }
+
+    function updateCount(){
+      const n = document.querySelectorAll('input[type="checkbox"]:checked').length;
+      document.getElementById('count').textContent = n;
+    }
+
+    function applyCheckedClasses(){
+      document.querySelectorAll('.test-row').forEach(row => {
+        const cb = row.querySelector('input[type="checkbox"]');
+        row.classList.toggle('checked', cb.checked);
+      });
+      document.body.classList.toggle('only-checked', document.getElementById('printOnlyChecked').checked);
+    }
+
+    // Listeners
+    sectionsEl.addEventListener('change', e => {
+      if(e.target.matches('input[type="checkbox"]')){
+        captureState();
+        updateCount();
+        applyCheckedClasses();
+      }
+    });
+
+    sectionsEl.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if(!btn) return;
+      const si = +btn.dataset.si;
+      const action = btn.dataset.action;
+      const rows = sectionsEl.querySelectorAll(`section:nth-child(${si+1}) input[type="checkbox"]`);
+      rows.forEach(cb => cb.checked = action==='check-all');
+      captureState();
+      updateCount();
+      applyCheckedClasses();
+    });
+
+    document.getElementById('search').addEventListener('input', render);
+    document.getElementById('printOnlyChecked').addEventListener('change', applyCheckedClasses);
+
+    document.getElementById('btnPrint').addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+      localStorage.removeItem(stateKey());
+      render();
+    });
+
+    document.querySelectorAll('#paciente,#edad,#sexo,#fecha,#telefono,#diagnostico').forEach(el=>{
+      el.addEventListener('input', captureState);
+      el.addEventListener('change', captureState);
+    });
+
+    // Fecha por defecto
+    document.getElementById('fecha').valueAsDate = new Date();
+
+    render();
+  </script>
+</body>
+</html>
