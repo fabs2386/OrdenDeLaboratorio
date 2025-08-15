@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selección de Pruebas Médicas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Hacer jsPDF disponible globalmente
+        window.jsPDF = window.jspdf.jsPDF;
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                padding: 0;
+                margin: 0;
+                font-size: 8pt;
+            }
+            .print-section {
+                width: 90% !important;
+                margin: 0 auto !important;
+                padding: 5mm !important;
+                background-color: white;
+            }
+            #printTests div {
+                margin-bottom: 1px !important;
+                page-break-inside: avoid;
+                line-height: 1.1 !important;
+            }
+            #printTests svg {
+                height: 8px !important;
+                width: 8px !important;
+            }
+            .text-blue-600 {
+                color: #2563eb !important;
+            }
+            .border-b-2 {
+                border-color: #f97316 !important;
+            }
+        }
+        .category-title {
+            background-color: #3b82f6;
+            color: white;
+            cursor: pointer;
+        }
+        .category-title:hover {
+            background-color: #2563eb;
+        }
+        .test-item {
+            transition: all 0.2s;
+        }
+        .test-item:hover {
+            background-color: #f0f9ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">Solicitud de Pruebas de Laboratorio</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2" for="paciente">PACIENTE:</label>
+                    <input type="text" id="paciente" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2" for="edad">EDAD:</label>
+                    <input type="text" id="edad" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2" for="sexo">SEXO:</label>
+                    <select id="sexo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Seleccionar</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2" for="fecha">FECHA:</label>
+                    <input type="date" id="fecha" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2" for="diagnostico">DIAGNÓSTICO:</label>
+                    <input type="text" id="diagnostico" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2" for="telefono">TELÉFONO:</label>
+                    <input type="tel" id="telefono" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-blue-600 mb-6">Selección de Pruebas</h2>
+            
+            <!-- Search -->
+            <div class="mb-6">
+                <input type="text" id="searchInput" placeholder="Buscar pruebas..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <!-- Categories Accordion -->
+            <div class="space-y-4">
+                <!-- PANEL MYCOBACTERIUM -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('mycobacterium')">
+                        PANEL MYCOBACTERIUM
+                    </div>
+                    <div id="mycobacterium" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="myco1" class="mr-2">
+                            <label for="myco1">Panel 1: Mycobacterium Tuberculosis Complex (M.Tuberculosis, M.Bovis, M.Africanum, M.Canetti, M.Microti y M. Pinnipedii)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="myco2" class="mr-2">
+                            <label for="myco2">Panel 2: Resistencia a Rifampicina e Isoniazida</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PANEL GASTROINTESTINAL -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('gastrointestinal')">
+                        PANEL GASTROINTESTINAL
+                    </div>
+                    <div id="gastrointestinal" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gi1" class="mr-2">
+                            <label for="gi1">Panel 1: Rotavirus A, Norovirus 1 y 2, Adenovirus</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gi2" class="mr-2">
+                            <label for="gi2">Panel 2 (Detecta 9 patógenos gastrointestinales): Shigella Spp. E.coli, Salmonella spp., Campylobacter spp., Adenovirus, Rotavirus A, Norovirus 1 y 2, Astrovirus</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gi3" class="mr-2">
+                            <label for="gi3">Panel 3 (Detecta 24 patógenos gastrointestinales): Sapovirus, Adenovirus, Giardia lamblia, Entamoeba histolytica, Cryptosporidium spp., Clostridium difficile toxina B, Plesiomona shiguelloides, Vibrio vulnificus, Cyclospora cayetanensis, Astrovirus, Rotavirus, Norovirus, Salmonella spp., Campilobacter spp., Vibrio parahaemolitycus, Vibrio cholerae, E. coli Enteroinvasiva, E. coli enteroagregativa, E. coli productora de toxina shiga, E. coli enteropatogenica, E. coli enterotoxigenica, Yersinia enterocolitica, Clostridium difficile toxina A, Clostridium difficile binario toxina A/B</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PANEL DE ENFERMEDADES DE TRANSMISION SEXUAL -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('ets')">
+                        PANEL DE ENFERMEDADES DE TRANSMISIÓN SEXUAL
+                    </div>
+                    <div id="ets" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="ets1" class="mr-2">
+                            <label for="ets1">Panel 1 (Detecta 3 patógenos más frecuentes de ETS): Chlamydia trachomatis, Neisseria gonorrhoeae, Mycoplasma genitalium</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="ets2" class="mr-2">
+                            <label for="ets2">Panel 2 (Detecta 13 patógenos más frecuentes de ETS): Chlamydia trachomatis, Neisseria gonorrhoeae, Trichomona vaginalis, Treponema pallidum, Mycoplasma genitalium, Herpes virus-1, Herpes virus-2, Micoplasma hominis, Haemophylus ducreyi, Gardnerella vaginalis, Streptococcus agalactiae, Ureaplasma parvum,/urealiticum, Mycoplasma hominis, Haemophilus ducreyi</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="ets3" class="mr-2">
+                            <label for="ets3">Prostatitis Bacteriana: Enterobacter spp., Klebsiella spp., Enterococcus faecalis, Е. faecium, Escherichia coli, Proteus spp., Pseudomonas aeruginosa, Serratia spp., Staphylococcus aureus, Streptococcus spp.</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PANEL VIRUS DEL PAPILOMA HUMANO -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('vph')">
+                        PANEL VIRUS DEL PAPILOMA HUMANO
+                    </div>
+                    <div id="vph" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="vph1" class="mr-2">
+                            <label for="vph1">Panel 1 (Detección de 20 genotipos): Alto Riesgo (16, 18, 31, 33, 35, 39, 45, 51, 52, 56, 58, 59, 66, 68), Probable Alto Riesgo (53, 73) y Bajo Riesgo (6, 11, 69, 70)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="vph2" class="mr-2">
+                            <label for="vph2">Panel 2 (Detección de 21 genotipos): Alto Riesgo (16, 18,) Genotipos Pool (6,11,26,31,33, 35, 39, 45, 51, 52, 53, 56, 58, 59, 66, 68, 73, 81, 82)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- INFECCIONES VIRALES -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('infecciones')">
+                        INFECCIONES VIRALES
+                    </div>
+                    <div id="infecciones" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="inf1" class="mr-2">
+                            <label for="inf1">Detección cuantitativa del Virus de la Hepatitis B (HBV)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="inf2" class="mr-2">
+                            <label for="inf2">Detección cuantitativa de Citomegalovirus (CMV)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="inf3" class="mr-2">
+                            <label for="inf3">Detección cuantitativa del Epstein-Barr Virus (EBV)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="inf4" class="mr-2">
+                            <label for="inf4">Detección cuantitativa del Herpes virus Humano 6 (HHV6)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ESTUDIOS GENETICOS -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('geneticos')">
+                        ESTUDIOS GENÉTICOS
+                    </div>
+                    <div id="geneticos" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen1" class="mr-2">
+                            <label for="gen1">ADN (Paternidad 2 muestras)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen2" class="mr-2">
+                            <label for="gen2">ADN (muestra adicional)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen3" class="mr-2">
+                            <label for="gen3">ADN filiación 2 muestras (hermandad, abuelidad, tialdad)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen4" class="mr-2">
+                            <label for="gen4">ADN Cromosoma Y (2 Muestras)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen5" class="mr-2">
+                            <label for="gen5">Cariotipo con Bandeo GTG</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen6" class="mr-2">
+                            <label for="gen6">Cromosoma 21 Sindrome de Down</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen7" class="mr-2">
+                            <label for="gen7">Cromosoma 18 Sindrome de Edwars</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen8" class="mr-2">
+                            <label for="gen8">Crmosoma 13 Sindrome de Patau</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen9" class="mr-2">
+                            <label for="gen9">Sindrome de Turner</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen10" class="mr-2">
+                            <label for="gen10">Sindrome de Klinefelter: XXY</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen11" class="mr-2">
+                            <label for="gen11">Monosomia del X</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen12" class="mr-2">
+                            <label for="gen12">Otras aneuploidías: XXX, XYY</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen13" class="mr-2">
+                            <label for="gen13">Mutaciones en BRCA1 y BRCA2</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="gen14" class="mr-2">
+                            <label for="gen14">Detección de Microdeleciones del Sistema AZF del Cromosoma Y</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MENINGITIS -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('meningitis')">
+                        MENINGITIS
+                    </div>
+                    <div id="meningitis" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="men1" class="mr-2">
+                            <label for="men1">Panel: N.meningitidis, H.influenzae, St.pneumoniae</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="men2" class="mr-2">
+                            <label for="men2">Panel meningitis encefalitis viral: Herpes virus simplex-1, Herpes virus simplex-2, Virus varicela zoster, Enterovirus, Parechovirus, Virus WestNile, virus Tosacana</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="men3" class="mr-2">
+                            <label for="men3">Panel meningitis encefalitis bacteriano: Streptococcus pneumoniae Listeria monocytogenes Streptococcus agalactiae, Haemophilus influenzae, Neisseria meningitidis y Escherichia coli K1</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PANELES DE DIAGNOSTICO MOLECULAR DE TRISONOMIAS -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('trisomias')">
+                        PANELES DE DIAGNÓSTICO MOLECULAR DE TRISOMÍAS
+                    </div>
+                    <div id="trisomias" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="tri1" class="mr-2">
+                            <label for="tri1">PCR EN TIEMPO REAL</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PRUEBAS TOXICOLOGICAS -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('toxicologicas')">
+                        PRUEBAS TOXICOLÓGICAS
+                    </div>
+                    <div id="toxicologicas" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="tox1" class="mr-2">
+                            <label for="tox1">Screnning de drogas de abuso: Detecta 11 drogas (Anfetaminas, Barbitúricos, Antidepresivos tricíclicos, Benzodiacepinas, Cocaína, Marihuana, Metadona, Metilenedioximetanfetamina, Fenciclidina, Opiáceos, Tramadol)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- COPROFLORA FUNCIONAL -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('coproflora')">
+                        COPROFLORA FUNCIONAL
+                    </div>
+                    <div id="coproflora" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop1" class="mr-2">
+                            <label for="cop1">EXAMEN INTEGRAL DE HECES FECALES</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop2" class="mr-2">
+                            <label for="cop2">EXAMEN MACROSCÓPICO</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop3" class="mr-2">
+                            <label for="cop3">EXAMEN MICROSCÓPICO</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop4" class="mr-2">
+                            <label for="cop4">COPROPARASITOLOGICO SERIADO + CONCENTRADO</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop5" class="mr-2">
+                            <label for="cop5">GIARDIA LAMBLIA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop6" class="mr-2">
+                            <label for="cop6">ENTAMOEBA HISTOLYTICA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop7" class="mr-2">
+                            <label for="cop7">CRYPTOSPORIDIUM</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop8" class="mr-2">
+                            <label for="cop8">CLOSTRIDIUM DIFFICILE TOXINA A + TOXINA B</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop9" class="mr-2">
+                            <label for="cop9">HELICOBACTER PYLORI ANTIGENO</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop10" class="mr-2">
+                            <label for="cop10">ROTAVIRUS</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop11" class="mr-2">
+                            <label for="cop11">ADENOVIRUS</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop12" class="mr-2">
+                            <label for="cop12">PH FECAL</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop13" class="mr-2">
+                            <label for="cop13">SANGRE OCULTA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop14" class="mr-2">
+                            <label for="cop14">ELASTASA – 1 PANCREATICA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop15" class="mr-2">
+                            <label for="cop15">GRASA (SUDAN III)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop16" class="mr-2">
+                            <label for="cop16">CARBOHIDRATOS (AZUCARES REDUCTORES)</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop17" class="mr-2">
+                            <label for="cop17">CALPROTECTINA FECAL</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop18" class="mr-2">
+                            <label for="cop18">LACTOFERRINA FECAL</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop19" class="mr-2">
+                            <label for="cop19">ALFA 1 ANTITRIPSINA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop20" class="mr-2">
+                            <label for="cop20">IgA SECRETORA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop21" class="mr-2">
+                            <label for="cop21">ZONULINA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop22" class="mr-2">
+                            <label for="cop22">COPROCULTIVO – IDENTIFICACIÓN DE FLORA ENTEROPATÓGENA + ANTIBIOGRAMA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop23" class="mr-2">
+                            <label for="cop23">MICROBIOTA INTESTINAL CON CUANTIFICACIÓN DE FLORA AEROBIA Y ANAEROBIA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cop24" class="mr-2">
+                            <label for="cop24">RECUENTO CUANTITATIVO DE CÁNDIDA</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PANELES RESPIRATORIOS -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('respiratorios')">
+                        PANELES RESPIRATORIOS
+                    </div>
+                    <div id="respiratorios" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="res1" class="mr-2">
+                            <label for="res1">Panel 1: SARS-Cov-2, Influenza A, Influenza B</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="res2" class="mr-2">
+                            <label for="res2">Panel 2: SARS-Cov-2, Influenza A, Influenza B, Virus sincitial respiratorio</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="res3" class="mr-2">
+                            <label for="res3">SARS – COV -2: Gen E, Gen N1, Gen N2</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="res4" class="mr-2">
+                            <label for="res4">Panel 3: Rhinovirus, Adenovirus, Enterovirus</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="res5" class="mr-2">
+                            <label for="res5">Panel 4 (Detecta 10 patógenos respiratorios virales): SARS-Cov-2, Influenza A, Influenza B, Parainfluenza, Coronavirus humano, Bocavirus, Rhinovirus, Virus Sincitial Respiratorio, Adenovirus, Metapneumovirus</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MARCADORES DE SALUD INTESTINAL -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('marcadores')">
+                        MARCADORES DE SALUD INTESTINAL
+                    </div>
+                    <div id="marcadores" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="mar1" class="mr-2">
+                            <label for="mar1">DIGESTION/ABSORCION</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="mar2" class="mr-2">
+                            <label for="mar2">MARCADORES DE INFLAMACION INTESTINAL</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="mar3" class="mr-2">
+                            <label for="mar3">RECUENTOS ESPECIALES</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="mar4" class="mr-2">
+                            <label for="mar4">MARCADORES DE PERMEABILIDAD INTESTINAL</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ENFERMEDAD CELIACA -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('celiaca')">
+                        ENFERMEDAD CELIACA
+                    </div>
+                    <div id="celiaca" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cel1" class="mr-2">
+                            <label for="cel1">Detección de hetermodimeros DQ2, DQ8 para ENFERMEDAD CELIACA</label>
+                        </div>
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="cel2" class="mr-2">
+                            <label for="cel2">Detección de mutaciones de intolerancia a la lactosa</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- HELICOBACTER PYLORI -->
+                <div class="rounded-md overflow-hidden">
+                    <div class="category-title px-4 py-3 font-bold" onclick="toggleCategory('helicobacter')">
+                        HELICOBACTER PYLORI
+                    </div>
+                    <div id="helicobacter" class="hidden px-4 py-2 border border-gray-200">
+                        <div class="test-item flex items-center mb-2">
+                            <input type="checkbox" id="hel1" class="mr-2">
+                            <label for="hel1">Diagnóstico y mecanismo de resistencia de Helicobacter pylori: Helicobacter pylori y resistencia a la claritromicina</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Print Section -->
+        <div id="printSection" class="bg-white rounded-lg shadow-lg p-6 mb-8 hidden print-section">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-blue-600">Laboratorio Clínico Especializado</h2>
+                <p class="text-gray-600">TORRE RIVERO - 1er Piso - Av. Ayacucho Esq. Teniente Arevalo</p>
+                <p class="text-gray-600">Cel: 627 2 3377 Tel: 466 7 840</p>
+            </div>
+            
+            <div class="border-b-2 border-gray-300 mb-6">
+                <h3 class="text-xl font-bold text-blue-600 mb-2">SOLICITUD DE PRUEBAS DE LABORATORIO</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <p><span class="font-bold">PACIENTE:</span> <span id="printPaciente"></span></p>
+                    <p><span class="font-bold">EDAD:</span> <span id="printEdad"></span></p>
+                    <p><span class="font-bold">SEXO:</span> <span id="printSexo"></span></p>
+                </div>
+                <div>
+                    <p><span class="font-bold">FECHA:</span> <span id="printFecha"></span></p>
+                    <p><span class="font-bold">DIAGNÓSTICO:</span> <span id="printDiagnostico"></span></p>
+                    <p><span class="font-bold">TELÉFONO:</span> <span id="printTelefono"></span></p>
+                </div>
+            </div>
+            
+            <div class="border-b-2 border-gray-300 mb-4">
+                <h3 class="text-xl font-bold text-blue-600">PRUEBAS SOLICITADAS</h3>
+            </div>
+            
+            <div id="printTests" class="space-y-2">
+                <!-- Tests will be added here by JavaScript -->
+            </div>
+            
+            <div class="mt-8 pt-4 border-t-2 border-gray-300">
+                <div class="flex justify-end items-center">
+                    <span class="mr-2">Firma del médico:</span>
+                    <input type="text" class="border-b-2 border-gray-400 focus:outline-none focus:border-blue-500 w-64 print:border-black print:border-b-2" placeholder="Escriba aquí">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating Action Buttons -->
+        <div class="fixed bottom-4 right-4 z-50 no-print">
+            <div class="flex items-center gap-2 bg-white rounded-full shadow-xl p-2 border border-gray-200">
+                <button onclick="generatePrintSection()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 text-sm">
+                    Vista Previa
+                </button>
+                <button onclick="printPDF()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 text-sm">
+                    Imprimir
+                </button>
+                <button onclick="resetForm()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 text-sm">
+                    Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle category visibility
+        function toggleCategory(categoryId) {
+            const category = document.getElementById(categoryId);
+            category.classList.toggle('hidden');
+        }
+        
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const testItems = document.querySelectorAll('.test-item');
+            
+            testItems.forEach(item => {
+                const label = item.querySelector('label').textContent.toLowerCase();
+                if (label.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                    // Show parent categories
+                    let parent = item.parentElement;
+                    while (parent && parent.classList && !parent.classList.contains('category-title')) {
+                        if (parent.classList.contains('hidden')) {
+                            parent.classList.remove('hidden');
+                        }
+                        parent = parent.parentElement;
+                    }
+                    // Show the category title
+                    if (parent && parent.previousElementSibling && parent.previousElementSibling.classList.contains('category-title')) {
+                        const categoryTitle = parent.previousElementSibling;
+                        if (categoryTitle.parentElement.querySelector('.hidden')) {
+                            categoryTitle.click(); // Simulate click to open
+                        }
+                    }
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // Generate print section
+        function generatePrintSection() {
+            // Get patient data
+            document.getElementById('printPaciente').textContent = document.getElementById('paciente').value;
+            document.getElementById('printEdad').textContent = document.getElementById('edad').value;
+            document.getElementById('printSexo').textContent = document.getElementById('sexo').value;
+            document.getElementById('printFecha').textContent = document.getElementById('fecha').value;
+            document.getElementById('printDiagnostico').textContent = document.getElementById('diagnostico').value;
+            document.getElementById('printTelefono').textContent = document.getElementById('telefono').value;
+            
+            // Get selected tests
+            const printTestsContainer = document.getElementById('printTests');
+            printTestsContainer.innerHTML = '';
+            
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                printTestsContainer.innerHTML = '<p class="text-red-500">No se han seleccionado pruebas.</p>';
+            } else {
+                checkboxes.forEach(checkbox => {
+                    const testItem = document.createElement('div');
+                    testItem.className = 'flex items-start mb-2';
+                    testItem.style.wordWrap = 'break-word';
+                    testItem.innerHTML = `
+                        <div class="w-4 h-4 flex items-center justify-center mr-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span style="font-size: 12pt; line-height: 1.4; white-space: normal;">${checkbox.nextElementSibling.textContent}</span>
+                    `;
+                    printTestsContainer.appendChild(testItem);
+                });
+            }
+            
+            // Show print section
+            document.getElementById('printSection').classList.remove('hidden');
+            
+            // Scroll to print section
+            document.getElementById('printSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Print PDF
+        function printPDF() {
+            generatePrintSection();
+            
+            // Use html2canvas to capture the print section
+            const printSection = document.getElementById('printSection');
+            
+            // Create a temporary div with only the essential content
+            const tempDiv = document.createElement('div');
+            tempDiv.style.padding = '5mm';
+            tempDiv.style.fontSize = '12pt';
+            tempDiv.style.maxWidth = '180mm'; // Compact width
+            
+            // Add patient info
+            const patientInfo = document.createElement('div');
+            patientInfo.style.marginBottom = '10px';
+            patientInfo.innerHTML = `
+                <div><strong>PACIENTE:</strong> ${document.getElementById('paciente').value}</div>
+                <div><strong>EDAD:</strong> ${document.getElementById('edad').value}</div>
+                <div><strong>SEXO:</strong> ${document.getElementById('sexo').value}</div>
+                <div><strong>FECHA:</strong> ${document.getElementById('fecha').value}</div>
+                <div><strong>DIAGNÓSTICO:</strong> ${document.getElementById('diagnostico').value}</div>
+                <div><strong>TELÉFONO:</strong> ${document.getElementById('telefono').value}</div>
+            `;
+            tempDiv.appendChild(patientInfo);
+            
+            // Add selected tests
+            const testsDiv = document.createElement('div');
+            testsDiv.style.marginTop = '10px';
+            
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                testsDiv.innerHTML = '<div style="color:red;">No se han seleccionado pruebas.</div>';
+            } else {
+                testsDiv.innerHTML = '<div style="font-weight:bold; margin-bottom:5px;">PRUEBAS SELECCIONADAS:</div>';
+                checkboxes.forEach(checkbox => {
+                    const testItem = document.createElement('div');
+                    testItem.style.marginBottom = '3px';
+                    testItem.style.display = 'flex';
+                    testItem.style.alignItems = 'flex-start';
+                    testItem.innerHTML = `
+                        <div style="margin-right:5px;">✓</div>
+                        <div style="word-wrap:break-word; white-space:normal;">${checkbox.nextElementSibling.textContent}</div>
+                    `;
+                    testsDiv.appendChild(testItem);
+                });
+            }
+            tempDiv.appendChild(testsDiv);
+            
+            // Add to body temporarily
+            document.body.appendChild(tempDiv);
+            
+            html2canvas(tempDiv, {
+                scale: 2, // Higher resolution
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                scrollX: 0,
+                scrollY: 0,
+                width: tempDiv.offsetWidth,
+                height: tempDiv.offsetHeight,
+                windowWidth: tempDiv.scrollWidth,
+                windowHeight: tempDiv.scrollHeight
+            }).then(canvas => {
+                document.body.removeChild(tempDiv);
+                
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', [canvas.height/8, canvas.width/8]); // Dynamic size
+                const imgWidth = pdf.internal.pageSize.getWidth() - 10; // Small margins
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 5, 5, imgWidth, imgHeight);
+                pdf.save('solicitud_pruebas_laboratorio.pdf');
+            }).catch(error => {
+                console.error('Error al generar PDF:', error);
+                alert('Error al generar el PDF. Por favor intente nuevamente.');
+            });
+        }
+        
+        // Reset form
+        function resetForm() {
+            // Reset patient data
+            document.getElementById('paciente').value = '';
+            document.getElementById('edad').value = '';
+            document.getElementById('sexo').value = '';
+            document.getElementById('fecha').value = '';
+            document.getElementById('diagnostico').value = '';
+            document.getElementById('telefono').value = '';
+            
+            // Uncheck all checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Hide print section
+            document.getElementById('printSection').classList.add('hidden');
+            
+            // Reset search
+            document.getElementById('searchInput').value = '';
+            const testItems = document.querySelectorAll('.test-item');
+            testItems.forEach(item => {
+                item.style.display = 'flex';
+            });
+        }
+        
+        // Set today's date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const dateStr = today.toISOString().substr(0, 10);
+            document.getElementById('fecha').value = dateStr;
+        });
+    </script>
+</body>
+</html>
